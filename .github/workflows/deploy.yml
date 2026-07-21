@@ -3,23 +3,26 @@ name: Deploy via FTP
 on:
   push:
     branches:
-      - main # Jalankan otomatis saat ada push ke branch main
+      - main
 
 jobs:
   web-deploy:
     name: Sync Files to cPanel
     runs-on: ubuntu-latest
     steps:
-          - name: 📂 Upload Files via FTP
-            uses: SamKirkland/FTP-Deploy-Action@v4.3.5
-            with:
-              server: ${{ secrets.FTP_SERVER }}
-              username: ${{ secrets.FTP_USERNAME }}
-              password: ${{ secrets.FTP_PASSWORD }}
-              server-dir: laravel_core/
-              exclude: |
-                **/.git*
-                **/.git*/**
-                **/node_modules/**
-                .env
-                .env.*
+      - name: 🚚 Checkout Code
+        uses: actions/checkout@v4
+
+      - name: 📂 Upload Files via FTP
+        uses: SamKirkland/FTP-Deploy-Action@v4
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          server-dir: laravel_core/
+          exclude: |
+            **/.git*
+            **/.git*/**
+            **/node_modules/**
+            .env
+            .env.*
