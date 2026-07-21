@@ -22,7 +22,7 @@ class SheieldSeeder extends Seeder
         app()[PermissionRegistrar::class]->forgetCachedPermissions();
 
         // 2. Otomatis generate seluruh permission resource & page Filament Shield
-        Artisan::call('shield:generate', ['--all' => true]);
+        //Artisan::call('shield:generate', ['--all' => true]);
 
         // 3. Ambil / Buat Role super_admin dari config Filament Shield
         $roleName = config('filament-shield.super_admin.role_name', 'super_admin');
