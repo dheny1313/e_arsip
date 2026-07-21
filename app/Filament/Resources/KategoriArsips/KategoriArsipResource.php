@@ -28,7 +28,7 @@ class KategoriArsipResource extends Resource
 {
     protected static ?string $model = KategoriArsip::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::RectangleStack;
 
     protected static ?string $recordTitleAttribute = 'nama_kategori';
 

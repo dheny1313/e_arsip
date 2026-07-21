@@ -26,7 +26,7 @@ use Filament\Schemas\Schema;
 class JabatanResource extends Resource
 {
     protected static ?string $model = Jabatan::class;
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::UserCircle;
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::Briefcase;
     protected static ?string $recordTitleAttribute = 'Jabatan';
 
     // 2. UBAH TYPE HINT MENJADI SCHEMA SESUAI ATURAN PARENT CLASS ANDA
