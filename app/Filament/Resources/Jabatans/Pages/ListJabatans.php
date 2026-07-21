@@ -15,6 +15,7 @@ class ListJabatans extends ListRecords
     // View default diset ke 'table'
     public string $activeView = 'table';
 
+
     // Arahkan ke custom blade template
     protected string $view = 'filament.resources.jabatans.pages.list-jabatans';
 
@@ -25,18 +26,22 @@ class ListJabatans extends ListRecords
             Action::make('viewTable')
                 ->label('Tampilan Tabel')
                 ->icon('heroicon-o-table-cells')
-                ->color($this->activeView === 'table' ? 'primary' : 'gray')
+                // 3. BUNGKUS COLOR DENGAN CLOSURE (fn () => ...)
+                ->color(fn(): string => $this->activeView === 'table' ? 'success' : 'gray')
                 ->action(fn() => $this->activeView = 'table'),
 
             // Tombol 2: Mode Struktur Organisasi
             Action::make('viewTree')
                 ->label('Struktur Organisasi')
                 ->icon('heroicon-o-rectangle-group')
-                ->color($this->activeView === 'tree' ? 'primary' : 'gray')
+                ->color($this->activeView === 'tree' ? 'success' : 'gray')
                 ->action(fn() => $this->activeView = 'tree'),
 
             // Tombol Buat Baru bawaan Filament
             ...parent::getHeaderActions(),
+
+            // TULIS EKSPLISIT DI SINI:
+            CreateAction::make(),
         ];
     }
 
