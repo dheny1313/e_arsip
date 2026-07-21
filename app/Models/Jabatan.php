@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Models;
+
 use App\Models\User;
 use App\Models\UnitKerja;
 use Illuminate\Database\Eloquent\Model;
@@ -15,7 +16,7 @@ class Jabatan extends Model
     // Relasi ke Unit Kerja
     public function unitKerja(): BelongsTo
     {
-        return $this->belongsTo(UnitKerja::class);
+        return $this->belongsTo(UnitKerja::class, 'unit_kerja_id');
     }
 
     // Relasi untuk mengambil 1 tingkat ATASAN langsung
