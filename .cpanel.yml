@@ -1,0 +1,10 @@
+---
+deployment:
+  tasks:
+    - export DEPLOYPATH=/home/dcoy7134/laravel_core
+    - /bin/cp -R * $DEPLOYPATH
+    - cd $DEPLOYPATH
+    - php artisan migrate --force
+    - php artisan config:cache
+    - php artisan route:cache
+    - php artisan view:clear
