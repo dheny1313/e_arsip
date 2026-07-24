@@ -20,15 +20,15 @@ class ListArsips extends ListRecords
     // Tambahkan baris ini untuk menggunakan Custom Page View
     protected string $view = 'filament.resources.arsip-resource.pages.list-arsips';
 
-   // protected function getHeaderActions(): array
-   // {
-     //   return [
-       //     CreateAction::make()
-         //       // Mengoper ID folder yang sedang aktif ke halaman/modal create
-           //     ->url(fn(): string => static::$resource::getUrl('create', [
-             //       'folder_id' => $this->folder_id
-               // ])),
-        //];
+    // protected function getHeaderActions(): array
+    // {
+    //   return [
+    //     CreateAction::make()
+    //       // Mengoper ID folder yang sedang aktif ke halaman/modal create
+    //     ->url(fn(): string => static::$resource::getUrl('create', [
+    //       'folder_id' => $this->folder_id
+    // ])),
+    //];
     //}
 
 
@@ -40,14 +40,21 @@ class ListArsips extends ListRecords
     public function setFolder($id)
     {
         $this->folder_id = $id;
+        $this->resetPage();
     }
 
-    // Fungsi untuk kembali ke folder sebelumnya (Naik 1 tingkat)
-    public function goUp()
+    public function updatedActiveTab(): void
+    {
+        $this->folder_id = null; // Kembali ke folder utama (root) saat ganti tab
+        $this->resetPage();      // Reset halaman pagination ke halaman 1
+    }
+
+    public function goUp(): void
     {
         if ($this->folder_id) {
-            $current = KategoriArsip::find($this->folder_id);
-            $this->folder_id = $current ? $current->parent_id : null;
+            $currentFolder = KategoriArsip::find($this->folder_id);
+            $this->folder_id = $currentFolder?->parent_id;
+            $this->resetPage();
         }
     }
 
@@ -78,7 +85,7 @@ class ListArsips extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-           Action::make('buatFolderBaru')
+            Action::make('buatFolderBaru')
                 ->label('Folder Baru')
                 ->icon('heroicon-m-folder-plus')
                 ->color('warning')

@@ -1,20 +1,20 @@
 @php
-    // 1. Cek Tab mana yang sedang aktif ('semua' atau 'jabatan')
-    $currentTab = $this->activeTab ?? 'semua';
+    // 1. Cek Tab mana yang sedang aktif (Default ke 'jabatan' jika null)
+    $currentTab = $this->activeTab ?? 'jabatan';
 
-    // 2. Query Folder berdasarkan parent_id saat ini
+    // 2. Query Sub-Folder berdasarkan parent_id saat ini
     $foldersQuery = \App\Models\KategoriArsip::where('parent_id', $this->folder_id);
 
-    // DIPERBARUI: Jika tab 'Arsip Jabatan Saya' aktif, saring menggunakan whereHas
+    // Jika tab 'Arsip Jabatan Saya' aktif, saring folder berdasarkan jabatan user
     if ($currentTab === 'jabatan') {
-        $userJabatanId = auth()->user()->jabatan_id;
+        $userJabatanId = auth()->user()?->jabatan_id;
         $foldersQuery->whereHas('jabatans', function ($query) use ($userJabatanId) {
             $query->where('jabatans.id', $userJabatanId);
         });
     }
 
     $folders = $foldersQuery->get();
-    $currentFolder = \App\Models\KategoriArsip::find($this->folder_id);
+    $currentFolder = $this->folder_id ? \App\Models\KategoriArsip::find($this->folder_id) : null;
 
     // 3. Hirarki Breadcrumb
     $breadcrumbs = [];
@@ -24,6 +24,7 @@
         $tempFolder = $tempFolder->parent;
     }
 @endphp
+
 {{-- Style Khusus yang Mendukung Dark & Light Mode --}}
 <style>
     .folder-grid {
@@ -107,7 +108,7 @@
                             {{ $crumb->nama_kategori }}
                         </span>
                     @else
-                        {{-- Folder Induk (Bisa Diklik untuk Melompat ke Tingkat Ini) --}}
+                        {{-- Folder Induk --}}
                         <button
                             wire:click="setFolder({{ $crumb->id }})"
                             type="button"
@@ -149,6 +150,10 @@
     @elseif(!$currentFolder)
         <div style="text-align: center; padding: 1.5rem; color: #9ca3af; font-size: 0.875rem; font-style: italic;">
             Belum ada kategori / folder utama.
+        </div>
+    @else
+        <div style="text-align: center; padding: 1rem; color: #9ca3af; font-size: 0.875rem; font-style: italic;">
+            Tidak ada sub-folder di dalam kategori ini.
         </div>
     @endif
 

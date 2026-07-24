@@ -41,9 +41,9 @@ class Arsip extends Model
     {
         static::deleted(function ($arsip) {
             // Mengecek apakah file fisiknya ada di storage
-            if ($arsip->file_arsip && Storage::disk('public')->exists($arsip->file_arsip)) {
+            if ($arsip->file_arsip && Storage::disk('local')->exists($arsip->file_arsip)) {
                 // Hapus file fisiknya!
-                Storage::disk('public')->delete($arsip->file_arsip);
+                Storage::disk('local')->delete($arsip->file_arsip);
             }
         });
     }
