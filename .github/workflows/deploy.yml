@@ -32,7 +32,8 @@ jobs:
           server: ${{ secrets.FTP_SERVER }}
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
-          server-dir: laravel_core/
+          # karena di akun ftp sudha dibuat khusus ke folder /laravel_core 
+          server-dir: ./
           exclude: |
             **/.git*
             **/.git*/**
