@@ -1,16 +1,16 @@
 @php
-    // 1. Cek Tab mana yang sedang aktif (Default ke 'jabatan' jika null)
-    $currentTab = $this->activeTab ?? 'jabatan';
+    // 1. Cek Tab mana yang sedang aktif
+    $currentTab = $this->activeTab ?? 'semua';
 
-    // 2. Query Sub-Folder berdasarkan parent_id saat ini
-    $foldersQuery = \App\Models\KategoriArsip::where('parent_id', $this->folder_id);
+    // 2. Query Sub-Folder berdasarkan parent_id saat ini + Eager Load relasi 'jabatan'
+    $foldersQuery = \App\Models\KategoriArsip::query()
+        ->where('parent_id', $this->folder_id)
+        ->with('jabatan'); // Eager load agar query efisien
 
     // Jika tab 'Arsip Jabatan Saya' aktif, saring folder berdasarkan jabatan user
     if ($currentTab === 'jabatan') {
         $userJabatanId = auth()->user()?->jabatan_id;
-        $foldersQuery->whereHas('jabatans', function ($query) use ($userJabatanId) {
-            $query->where('jabatans.id', $userJabatanId);
-        });
+        $foldersQuery->where('jabatan_id', $userJabatanId);
     }
 
     $folders = $foldersQuery->get();
@@ -29,7 +29,7 @@
 <style>
     .folder-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
         gap: 1rem;
     }
 
@@ -37,14 +37,15 @@
         display: flex;
         flex-direction: column;
         align-items: center;
-        justify-content: center;
+        justify-content: space-between;
         text-align: center;
-        padding: 1rem;
+        padding: 0.875rem 0.75rem;
         border-radius: 0.75rem;
         cursor: pointer;
         transition: all 0.2s ease-in-out;
         border: 1px solid rgba(229, 231, 235, 1);
         background-color: rgba(249, 250, 251, 0.8);
+        min-height: 120px;
     }
 
     .folder-card:hover {
@@ -61,6 +62,24 @@
         -webkit-line-clamp: 2;
         -webkit-box-orient: vertical;
         overflow: hidden;
+        word-break: break-word;
+        margin-bottom: 6px;
+    }
+
+    /* Badge Indikator Jabatan */
+    .folder-badge {
+        display: inline-block;
+        font-size: 0.65rem;
+        font-weight: 600;
+        padding: 2px 6px;
+        border-radius: 4px;
+        background-color: #fef3c7;
+        color: #92400e;
+        border: 1px solid #fde68a;
+        max-width: 100%;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 
     /* Support Dark Mode */
@@ -76,6 +95,12 @@
 
     .dark .folder-text {
         color: #f3f4f6;
+    }
+
+    .dark .folder-badge {
+        background-color: rgba(146, 64, 14, 0.3);
+        color: #fcd34d;
+        border-color: rgba(252, 211, 77, 0.2);
     }
 </style>
 
@@ -140,10 +165,19 @@
         <div class="folder-grid">
             @foreach($folders as $folder)
                 <div wire:click="setFolder({{ $folder->id }})" class="folder-card">
-                    <x-heroicon-s-folder style="width: 44px; height: 44px; color: #f59e0b; margin-bottom: 8px;" />
-                    <span class="folder-text">
-                        {{ $folder->nama_kategori }}
-                    </span>
+                    <div style="display: flex; flex-direction: column; align-items: center; width: 100%;">
+                        <x-heroicon-s-folder style="width: 44px; height: 44px; color: #f59e0b; margin-bottom: 6px;" />
+                        <span class="folder-text">
+                            {{ $folder->nama_kategori }}
+                        </span>
+                    </div>
+
+                    {{-- BADGE INDIKATOR JABATAN (Poin C) --}}
+                    @if($folder->jabatan)
+                        <span class="folder-badge" title="{{ $folder->jabatan->nama_jabatan }}">
+                            {{ $folder->jabatan->nama_jabatan }}
+                        </span>
+                    @endif
                 </div>
             @endforeach
         </div>

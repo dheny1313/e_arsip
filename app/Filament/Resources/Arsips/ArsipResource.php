@@ -110,25 +110,20 @@ class ArsipResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
-            // 1. FILTER FILE: Hanya tampilkan file yang folder/kategorinya sedang dibuka
             ->modifyQueryUsing(function (Builder $query, $livewire) {
-                // Cek apakah halaman ini adalah ListArsips (punya variabel folder_id)
                 if (property_exists($livewire, 'folder_id')) {
                     $query->where('kategori_arsip_id', $livewire->folder_id);
                 }
                 return $query;
             })
-
-            // 1. TAMBAHKAN CONTENT GRID DI SINI (Ini yang membuat tampilan jadi seperti G-Drive)
             ->contentGrid([
-                'md' => 3, // 3 kolom di layar sedang
-                'xl' => 4, // 4 kolom di layar besar
-                '2xl' => 5, // 5 kolom di layar sangat besar
+                'md' => 3,
+                'xl' => 4,
+                '2xl' => 5,
             ])
             ->columns([
-                // 2. BUNGKUS KOLOM DENGAN STACK AGAR DITUMPUK KE BAWAH (Menyerupai Kartu/Folder)
                 Stack::make([
-                    // Ikon File (Berubah sesuai ekstensi dokumen)
+                    // Ikon File
                     IconColumn::make('ikon_file')
                         ->getStateUsing(fn($record) => strtolower(pathinfo($record->file_arsip, PATHINFO_EXTENSION)))
                         ->icon(fn($state) => match ($state) {
@@ -138,12 +133,12 @@ class ArsipResource extends Resource
                             default => 'heroicon-s-document',
                         })
                         ->color(fn($state) => match ($state) {
-                            'pdf' => 'danger',     // Merah untuk PDF
-                            'doc', 'docx' => 'info', // Biru untuk Word
-                            'xls', 'xlsx' => 'success', // Hijau untuk Excel
+                            'pdf' => 'danger',
+                            'doc', 'docx' => 'info',
+                            'xls', 'xlsx' => 'success',
                             default => 'primary',
                         })
-                        ->size(IconSize::Large) // Ikon besar
+                        ->size(IconSize::Large)
                         ->alignCenter(),
 
                     // Judul File
@@ -151,7 +146,7 @@ class ArsipResource extends Resource
                         ->weight('bold')
                         ->searchable()
                         ->alignCenter()
-                        ->limit(30), // Batasi teks agar card tidak berantakan jika judul sangat panjang
+                        ->limit(30),
 
                     // Nomor Arsip
                     TextColumn::make('nomor_arsip')
@@ -164,9 +159,19 @@ class ArsipResource extends Resource
                     TextColumn::make('kategori.nama_kategori')
                         ->label('Kategori')
                         ->size('sm')
-                        ->color('primary') // Beri warna agar terlihat seperti badge kategori
+                        ->color('primary')
                         ->alignCenter()
                         ->sortable(),
+
+                    // =========================================================
+                    // POIN C: BADGE INDIKATOR JABATAN PADA KARTU FILE
+                    // =========================================================
+                    TextColumn::make('kategori.jabatan.nama_jabatan')
+                        ->label('Jabatan')
+                        ->badge()
+                        ->color('warning')
+                        ->alignCenter()
+                        ->placeholder('Umum'),
 
                     // Tanggal Upload
                     TextColumn::make('tanggal_arsip')
@@ -175,7 +180,7 @@ class ArsipResource extends Resource
                         ->color('gray')
                         ->alignCenter()
                         ->sortable(),
-                ])->space(3), // Jarak vertikal antar elemen di dalam card
+                ])->space(3),
             ])
             ->filters([
                 SelectFilter::make('kategori_arsip_id')

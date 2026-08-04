@@ -36,6 +36,18 @@ class ListArsips extends ListRecords
     #[Url]
     public ?int $folder_id = null;
 
+    public function getFolders()
+    {
+        return KategoriArsip::query()
+            ->where('parent_id', $this->folder_id)
+            ->when($this->activeTab === 'jabatan', function (Builder $query) {
+                // Filter folder agar hanya milik jabatan user ketika di Tab "Jabatan Saya"
+                $query->where('jabatan_id', Auth::user()->jabatan_id);
+            })
+            ->with('jabatan') // Eager load relasi jabatan untuk badge UI
+            ->get();
+    }
+
     // Fungsi untuk masuk ke dalam folder
     public function setFolder($id)
     {
@@ -97,10 +109,14 @@ class ListArsips extends ListRecords
                         ->maxLength(255),
                 ])
                 ->action(function (array $data): void {
+                    // Ambil jabatan dari parent_id jika sedang berada di dalam subfolder
+                    $parentFolder = $this->folder_id ? KategoriArsip::find($this->folder_id) : null;
+                    $jabatanId = $parentFolder ? $parentFolder->jabatan_id : Auth::user()->jabatan_id;
+
                     KategoriArsip::create([
                         'nama_kategori' => $data['nama_kategori'],
                         'parent_id'     => $this->folder_id,
-                        'jabatan_id'    => Auth::user()->jabatan_id, // Otomatis mengikat folder ke jabatan user
+                        'jabatan_id'    => $jabatanId,
                     ]);
 
                     Notification::make()
