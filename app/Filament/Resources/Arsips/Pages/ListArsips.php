@@ -109,9 +109,8 @@ class ListArsips extends ListRecords
                         ->maxLength(255),
                 ])
                 ->action(function (array $data): void {
-                    // Ambil jabatan dari parent_id jika sedang berada di dalam subfolder
                     $parentFolder = $this->folder_id ? KategoriArsip::find($this->folder_id) : null;
-                    $jabatanId = $parentFolder ? $parentFolder->jabatan_id : Auth::user()->jabatan_id;
+                    $jabatanId = $parentFolder?->jabatan_id ?? Auth::user()?->jabatan_id;
 
                     KategoriArsip::create([
                         'nama_kategori' => $data['nama_kategori'],
