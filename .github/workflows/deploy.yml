@@ -9,12 +9,25 @@ jobs:
   web-deploy:
     name: Sync Files to cPanel
     runs-on: ubuntu-latest
+
     steps:
       - name: 🚚 Get latest code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
 
+      # 1. Compile file UI (Vite/Tailwind/CSS/JS) agar hasil build ikut ter-upload
+      - name: 🟢 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: 📦 Install & Build Assets UI
+        run: |
+          npm ci
+          npm run build
+
+      # 2. Upload file ke cPanel via FTP
       - name: 📂 Upload Files via FTP
-        uses: SamKirkland/FTP-Deploy-Action@v4.4.0
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
           server: ${{ secrets.FTP_SERVER }}
           username: ${{ secrets.FTP_USERNAME }}
@@ -37,3 +50,4 @@ jobs:
             storage/framework/cache/data/*
             storage/framework/sessions/*
             storage/framework/views/*
+            public/hot
