@@ -22,7 +22,7 @@ jobs:
 
       - name: 📦 Install & Build Assets UI
         run: |
-          npm ci
+          npm install --legacy-peer-deps
           npm run build
 
       # 2. Upload file ke cPanel via FTP
