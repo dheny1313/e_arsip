@@ -173,9 +173,13 @@
                     </div>
 
                     {{-- BADGE INDIKATOR JABATAN (Poin C) --}}
-                    @if($folder->jabatan)
-                        <span class="folder-badge" title="{{ $folder->jabatan->nama_jabatan }}">
-                            {{ $folder->jabatan->nama_jabatan }}
+                   @if($folder->jabatan)
+                        <span class="folder-badge" title="{{ $folder->jabatan->nama_jabatan ?? $folder->jabatan->nama }}">
+                            {{ $folder->jabatan->nama_jabatan ?? $folder->jabatan->nama ?? 'Ada Jabatan' }}
+                        </span>
+                    @else
+                        <span class="folder-badge" style="background-color: #e5e7eb; color: #4b5563; border-color: #d1d5db;">
+                            Umum / Global
                         </span>
                     @endif
                 </div>
