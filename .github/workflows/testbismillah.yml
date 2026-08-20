@@ -14,7 +14,7 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      # 1. Setup PHP & Caching Composer
+      # 1. Setup PHP & Build Composer (Diperlukan agar Filament bisa di-build oleh NPM)
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
@@ -32,10 +32,10 @@ jobs:
           key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
           restore-keys: ${{ runner.os }}-composer-
 
-      - name: Install Composer Dependencies (Properti Production)
+      - name: Install Composer Dependencies
         run: composer install --prefer-dist --no-dev --no-interaction --no-progress
 
-      # 2. Setup Node.js 22 & Build Assets
+      # 2. Setup Node.js 22 & Build Assets (Vite/Tailwind Filament)
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -47,7 +47,7 @@ jobs:
           npm install --legacy-peer-deps
           npm run build
 
-      # 3. Upload Semua File (Termasuk vendor/) via FTP
+      # 3. Upload File Utama via FTP (SANGAT Cepat karena TANPA vendor/)
       - name: 📂 Upload Files via FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
@@ -56,6 +56,7 @@ jobs:
           password: ${{ secrets.FTP_PASSWORD }}
           server-dir: ./
           exclude: |
+            **/vendor/**
             **/node_modules/**
             **/.git*
             **/.git*/**
@@ -73,3 +74,4 @@ jobs:
             storage/framework/sessions/*
             storage/framework/views/*
             public/hot
+            
