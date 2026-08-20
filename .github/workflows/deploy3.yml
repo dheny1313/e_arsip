@@ -1,0 +1,66 @@
+name: Deploy via FTP
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  web-deploy:
+    name: Sync Files to cPanel
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      # 1. Setup PHP & Install Composer
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+
+      - name: Install Composer Dependencies
+        # Menambahkan --no-dev agar paket development (seperti PHPUnit) tidak ikut terinstall
+        # Ini mengurangi ribuan file yang tidak perlu diupload ke server production
+        run: composer install --prefer-dist --no-interaction --no-progress --no-dev
+
+      # 2. Setup Node.js & Build Assets
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22' # Diperbarui ke Node 22 untuk menghilangkan peringatan deprecation
+
+      - name: Install NPM Dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: Build Assets
+        run: npm run build
+
+      # 3. Upload file ke cPanel via FTP
+      - name: 📂 Upload Files via FTP
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          server-dir: ./
+          timeout: 60000 # Menambah waktu toleransi koneksi menjadi 60 detik (default: 10 detik)
+          exclude: |
+            **/.git*
+            **/.git*/**
+            **/.github/**
+            **/node_modules/**
+            .env
+            .env.*
+            **/tests/**
+            phpunit.xml
+            README.md
+            .editorconfig
+            .vscode/**
+            .idea/**
+            storage/logs/*
+            storage/framework/cache/data/*
+            storage/framework/sessions/*
+            storage/framework/views/*
+            public/hot
