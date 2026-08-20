@@ -78,7 +78,7 @@ class ArsipRelationManager extends RelationManager
                         return "dokumen-arsip/{$namaKategori}/{$tanggal}";
                     })
                     //->acceptedFileTypes(['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'])
-                    ->maxSize(5120) // Maksimal 5MB
+                    ->maxSize(204800) // Maksimal 200mb
                     ->required()
                     ->columnSpanFull(),
                 Forms\Components\Textarea::make('keterangan')
@@ -108,7 +108,7 @@ class ArsipRelationManager extends RelationManager
                 // Tombol download file
                 Action::make('download')
                     ->icon('heroicon-o-arrow-down-tray')
-                    ->url(fn($record) => asset('storage/' . $record->file_arsip))
+                    ->url(fn ($record) => route('arsip.secure', $record))
                     ->openUrlInNewTab(),
                 EditAction::make(),
                 DeleteAction::make(),

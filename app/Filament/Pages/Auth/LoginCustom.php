@@ -13,6 +13,9 @@ use SensitiveParameter;
 
 class LoginCustom extends Login
 {
+
+    protected string $view = 'filament.pages.auth.login-custom';
+
     public function form(Schema $schema): Schema
     {
         return $schema
@@ -56,6 +59,4 @@ class LoginCustom extends Login
             'data.login' => __('filament-panels::auth/pages/login.messages.failed'),
         ]);
     }
-
-    // protected string $view = 'filament.pages.auth.login-custom';
 }

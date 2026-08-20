@@ -96,7 +96,15 @@ class ArsipResource extends Resource
                         // 4. Struktur direktori penyimpanan di server
                         return "dokumen-arsip/{$folderStructure}/{$tanggal}";
                     })
-                    ->maxSize(5120) // Maksimal 5MB
+
+                    ->preserveFilenames()
+                    // ATAU contoh kustom nama file sesuai Judul Arsip + Ekstensi Asli:
+                    ->getUploadedFileNameForStorageUsing(function (Get $get, $file) {
+                        $judul = Str::slug($get('judul_arsip') ?? 'dokumen');
+                        $extension = $file->getClientOriginalExtension();
+                        return "{$judul}-" . time() . ".{$extension}";
+                    })
+                    ->maxSize(204800) // Maksimal 200MB
                     ->required()
                     ->columnSpanFull(),
 
@@ -111,6 +119,9 @@ class ArsipResource extends Resource
     {
         return $table
             ->modifyQueryUsing(function (Builder $query, $livewire) {
+                // Eager load relasi kategori beserta jabatan & parent-nya
+                $query->with(['kategori.jabatans', 'kategori.parent.jabatans']);
+
                 if (property_exists($livewire, 'folder_id')) {
                     $query->where('kategori_arsip_id', $livewire->folder_id);
                 }
@@ -166,12 +177,31 @@ class ArsipResource extends Resource
                     // =========================================================
                     // POIN C: BADGE INDIKATOR JABATAN PADA KARTU FILE
                     // =========================================================
-                    TextColumn::make('kategori.jabatan.nama_jabatan')
+                    TextColumn::make('kategori.jabatans.nama_jabatan')
                         ->label('Jabatan')
                         ->badge()
+                        ->separator(',') // Karena satu kategori bisa punya lebih dari 1 jabatan
                         ->color('warning')
                         ->alignCenter()
-                        ->placeholder('Umum'),
+                        ->placeholder('Umum')
+                        ->getStateUsing(function ($record) {
+                            if (! $record->kategori) {
+                                return null;
+                            }
+
+                            // 1. Cek apakah kategori langsung dari arsip ini punya jabatan
+                            if ($record->kategori->jabatans->isNotEmpty()) {
+                                return $record->kategori->jabatans->pluck('nama_jabatan')->toArray();
+                            }
+
+                            // 2. Jika tidak ada (misal arsip berada di sub-kategori),
+                            // cek jabatan dari Kategori Parent (Folder Induk)
+                            if ($record->kategori->parent && $record->kategori->parent->jabatans->isNotEmpty()) {
+                                return $record->kategori->parent->jabatans->pluck('nama_jabatan')->toArray();
+                            }
+
+                            return null; // Akan otomatis menampilkan placeholder ('Umum')
+                        }),
 
                     // Tanggal Upload
                     TextColumn::make('tanggal_arsip')
@@ -250,6 +280,19 @@ class ArsipResource extends Resource
                             </template>
                         </div>
                     HTML);
+                    }),
+
+                // 2. TOMBOL UNDUH ARSIP (BARU DITAMBAHKAN)
+                Action::make('unduh_dokumen')
+                    ->label('Unduh')
+                    ->icon('heroicon-o-arrow-down-tray')
+                    ->color('info')
+                    ->action(function ($record) {
+                        // Jika menggunakan route secure yang sudah Anda buat:
+                        //return redirect()->route('arsip.secure', $record);
+
+                        // ATAU jika ingin mengunduh langsung dari Disk Local Storage:
+                        return Storage::disk('local')->download($record->file_arsip);
                     }),
                 EditAction::make()->label('Edit'), // Dipersingkat agar rapi sejajar dengan tombol lihat
             ])

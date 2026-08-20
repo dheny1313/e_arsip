@@ -13,6 +13,8 @@ use Filament\Schemas\Components\Tabs\Tab;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Url;
+use App\Models\User;
+
 
 class ListArsips extends ListRecords
 {
@@ -38,13 +40,17 @@ class ListArsips extends ListRecords
 
     public function getFolders()
     {
+        $user = Auth::user();
+
         return KategoriArsip::query()
             ->where('parent_id', $this->folder_id)
-            ->when($this->activeTab === 'jabatan', function (Builder $query) {
-                // Filter folder agar hanya milik jabatan user ketika di Tab "Jabatan Saya"
-                $query->where('jabatan_id', Auth::user()->jabatan_id);
+            ->when($this->activeTab === 'jabatan', function (Builder $query) use ($user) {
+                // FILTER BARU: Membaca relasi pivot 'jabatans'
+                $query->whereHas('jabatans', function ($q) use ($user) {
+                    $q->where('jabatan_id', $user->jabatan_id);
+                });
             })
-            ->with('jabatan') // Eager load relasi jabatan untuk badge UI
+            ->with('jabatans') // Eager load relasi jamak
             ->get();
     }
 
@@ -83,8 +89,9 @@ class ListArsips extends ListRecords
                 ->icon('heroicon-m-briefcase')
                 ->modifyQueryUsing(function (Builder $query) {
                     $user = Auth::user();
-                    // Menampilkan data tabel arsip yang hanya sesuai dengan jabatan user
-                    $query->whereHas('kategori', function ($q) use ($user) {
+
+                    // FILTER BARU: Mencari arsip yang kategorinya punya relasi ke jabatan user di tabel pivot
+                    $query->whereHas('kategori.jabatans', function ($q) use ($user) {
                         $q->where('jabatan_id', $user->jabatan_id);
                     });
                 }),
@@ -109,14 +116,24 @@ class ListArsips extends ListRecords
                         ->maxLength(255),
                 ])
                 ->action(function (array $data): void {
+                    $user = Auth::user();
                     $parentFolder = $this->folder_id ? KategoriArsip::find($this->folder_id) : null;
-                    $jabatanId = $parentFolder?->jabatan_id ?? Auth::user()?->jabatan_id;
 
-                    KategoriArsip::create([
+                    // 1. Buat folder tanpa mengisi kolom jabatan_id
+                    $kategori = KategoriArsip::create([
                         'nama_kategori' => $data['nama_kategori'],
                         'parent_id'     => $this->folder_id,
-                        'jabatan_id'    => $jabatanId,
                     ]);
+
+                    // 2. Logika Menyimpan Hak Akses Jabatan ke Tabel Pivot
+                    if ($parentFolder && $parentFolder->jabatans->isNotEmpty()) {
+                        // Jika buat di dalam sub-folder, warisi hak akses dari folder induknya
+                        $kategori->jabatans()->sync($parentFolder->jabatans->pluck('id'));
+                    } elseif (! $user->hasRole('superadmin') && $user->jabatan_id) {
+                        // Jika yang buat adalah User Divisi (di root folder), otomatis atur hak akses untuk divisinya saja
+                        $kategori->jabatans()->attach($user->jabatan_id);
+                    }
+                    // Jika Superadmin yang buat di root, biarkan kosong agar menjadi folder "Umum"
 
                     Notification::make()
                         ->title('Folder Berhasil Dibuat!')

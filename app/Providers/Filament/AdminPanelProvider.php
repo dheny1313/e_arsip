@@ -3,8 +3,8 @@
 namespace App\Providers\Filament;
 
 use App\Filament\Pages\Auth\LoginCustom;
-use Filament\Http\Middleware\Authenticate;
 use BezhanSalleh\FilamentShield\FilamentShieldPlugin;
+use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
@@ -12,6 +12,7 @@ use Filament\Pages\Dashboard;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
+use Filament\View\PanelsRenderHook;
 use Filament\Widgets\AccountWidget;
 use Filament\Widgets\FilamentInfoWidget;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
@@ -31,8 +32,24 @@ class AdminPanelProvider extends PanelProvider
             ->path('admin')
             ->login(LoginCustom::class)
             ->colors([
-                'primary' => Color::Amber,
+                'primary' => Color::hex('#059669'),
+                'warning' => Color::hex('#FBBF24'),
+                'gray'    => Color::Gray,
             ])
+
+            //logo
+            ->brandLogo(asset('images/logo.png'))
+            ->brandLogoHeight('2.5rem') // Atur tinggi logo agar pas
+            ->favicon(asset('images/logo.png'))
+
+            // 2. Font Modern
+            ->font('Plus Jakarta Sans')
+            // 3. Branding
+            ->brandName('E-ARSIP DIGITAL')
+            // 4. Custom Theme
+            ->viteTheme('resources/css/filament/admin/theme.css')
+            // 5. Sidebar Collapsible
+            ->sidebarCollapsibleOnDesktop()
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\Filament\Pages')
             ->pages([
@@ -44,6 +61,11 @@ class AdminPanelProvider extends PanelProvider
                 //docukemntasi filament
                 //FilamentInfoWidget::class,
             ])
+
+            ->renderHook(
+                PanelsRenderHook::FOOTER,
+                fn() => view('filament.components.footer')
+            )
 
 
             //tambahan plugin

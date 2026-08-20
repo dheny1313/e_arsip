@@ -70,10 +70,15 @@
             <div class="flex justify-between items-center">
                 <!-- Logo -->
                 <div class="flex items-center gap-2 cursor-pointer">
-                    <svg class="w-8 h-8 text-brand-green" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"></path>
-                    </svg>
-                    <span class="font-bold text-2xl tracking-tight">E<span class="text-brand-yellow">-Arsip</span></span>
+                    <img
+                        src="{{ asset('images/logo.png') }}"
+                        alt="Logo E-Arsip"
+                        class="w-8 h-8 object-contain"
+                    >
+
+                    <span class="font-bold text-2xl tracking-tight">
+                        E<span class="text-brand-yellow">-Arsip Dilmil IV-15 BJM</span>
+                    </span>
                 </div>
 
                 <!-- Desktop Menu -->

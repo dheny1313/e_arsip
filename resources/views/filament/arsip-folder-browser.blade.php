@@ -2,15 +2,18 @@
     // 1. Cek Tab mana yang sedang aktif
     $currentTab = $this->activeTab ?? 'semua';
 
-    // 2. Query Sub-Folder berdasarkan parent_id saat ini + Eager Load relasi 'jabatan'
+    // 2. Query Sub-Folder berdasarkan parent_id saat ini + Eager Load relasi jamak 'jabatans'
     $foldersQuery = \App\Models\KategoriArsip::query()
         ->where('parent_id', $this->folder_id)
-        ->with('jabatan'); // Eager load agar query efisien
+        ->with('jabatans'); // <--- UBAH: pakai 'jabatans'
 
-    // Jika tab 'Arsip Jabatan Saya' aktif, saring folder berdasarkan jabatan user
+    // Jika tab 'Arsip Jabatan Saya' aktif, saring folder berdasarkan tabel pivot jabatan user
     if ($currentTab === 'jabatan') {
         $userJabatanId = auth()->user()?->jabatan_id;
-        $foldersQuery->where('jabatan_id', $userJabatanId);
+        // <--- UBAH: Gunakan whereHas untuk mencari di tabel pivot
+        $foldersQuery->whereHas('jabatans', function($q) use ($userJabatanId) {
+            $q->where('jabatan_id', $userJabatanId);
+        });
     }
 
     $folders = $foldersQuery->get();
@@ -173,9 +176,10 @@
                     </div>
 
                     {{-- BADGE INDIKATOR JABATAN (Poin C) --}}
-                   @if($folder->jabatan)
-                        <span class="folder-badge" title="{{ $folder->jabatan->nama_jabatan ?? $folder->jabatan->nama }}">
-                            {{ $folder->jabatan->nama_jabatan ?? $folder->jabatan->nama ?? 'Ada Jabatan' }}
+                    @if($folder->jabatans && $folder->jabatans->isNotEmpty())
+                        {{-- Menggabungkan semua nama jabatan dengan koma jika ada lebih dari 1 --}}
+                        <span class="folder-badge" title="{{ $folder->jabatans->pluck('nama_jabatan')->join(', ') }}">
+                            {{ $folder->jabatans->pluck('nama_jabatan')->join(', ') }}
                         </span>
                     @else
                         <span class="folder-badge" style="background-color: #e5e7eb; color: #4b5563; border-color: #d1d5db;">

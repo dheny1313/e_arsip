@@ -15,14 +15,10 @@ class KategoriArsip extends Model
 
 
     // Tambahkan di dalam class KategoriArsip
-    public function jabatan()
-    {
-        return $this->belongsTo(Jabatan::class, 'jabatan_id');
-    }
-
     public function jabatans()
     {
-        return $this->belongsToMany(Jabatan::class, 'kategori_arsip_jabatan');
+        // Ini akan otomatis membaca tabel pivot 'kategori_arsip_jabatan'
+        return $this->belongsToMany(Jabatan::class, 'kategori_arsip_jabatan', 'kategori_arsip_id', 'jabatan_id');
     }
 
     // 2. Tambahkan relasi ini untuk Sub-Folder (anak)

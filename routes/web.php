@@ -8,6 +8,10 @@ Route::get('/', function () {
     return view('welcome');
 });
 
+Route::get('/cek-php', function () {
+    return 'Web Server Limit: ' . ini_get('upload_max_filesize') . ' | Post Limit: ' . ini_get('post_max_size');
+});
+
 
 Route::get('/arsip/{arsip}/secure-access', function (Arsip $arsip) {
     // Memeriksa file di disk 'local' (Private)
